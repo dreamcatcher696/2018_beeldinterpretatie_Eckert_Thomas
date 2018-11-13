@@ -1,7 +1,7 @@
 # Labo beeldinterpretatie 2018
-##Sessie 0
+## Sessie 0
 
-###labo1-sessie0
+### labo1-sessie0
 
 
 | parameter | doel |
@@ -15,7 +15,7 @@ om naar het volgend scherm te gaan, gelieve op eender welke knop (behalve de pow
 
 ***
 
-##Sessie 1
+## Sessie 1
 
 | Command | Action |
 | ----- | ----- |
@@ -27,20 +27,20 @@ om naar het volgend scherm te gaan, gelieve op eender welke knop (behalve de pow
 
 
 
-##usage:
+## usage:
   * in case of trouble: use absolute paths to images
   * to proceed to next window, press any button (except power)
 
   
-###1.1
+### 1.1
 ```
 ./sessie1 -t /imageColor.jpg
 ```
-###1.1.2
+### 1.1.2
 ```
 ./sessie1 -b /imageModal.jpg
 ```
-###1.2
+### 1.2
 ```
 ./sessie1 -c /imageColorAdapted.jpg
 ```
