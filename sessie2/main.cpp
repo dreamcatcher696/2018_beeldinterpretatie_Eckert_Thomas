@@ -4,6 +4,10 @@
 using namespace std;
 using namespace cv;
 
+void callback(int, void*)
+{
+
+}
 int main(int argc, const char** argv) {
     /**
     *     helper function to parse commands
@@ -14,6 +18,7 @@ int main(int argc, const char** argv) {
                              "{segBGR segmentBGR | | opdracht1:segmenteer in BGR}"
                              "{segHSV segmentHSV | | opdracht2:segmenteer in HSV}"
                              "{clean c | | opdracht3:segmenteer in hsv, dan proper maken}"
+                             "{sliders| |pas de waarden van de threshold aan door sliders}"
 
     );
     //if help
@@ -187,5 +192,61 @@ int main(int argc, const char** argv) {
         waitKey(0);
 
     }
+    if(parser.has("sliders"))
+    {
+        int hueValL, hueValH, satValL, satValH, valValL, valValH;
+        namedWindow("Sliders");
+        hueValL = 34;
+        hueValH = 159;
+        satValL = 17;
+        satValH = 92;
+        valValL = 127;
+        valValH = 181;
+        createTrackbar("HUE-LOW", "Sliders",&hueValL, 180, callback);
+        createTrackbar("HUE-HIGH", "Sliders",&hueValH, 180, callback);
+        createTrackbar("SAT-LOW", "Sliders",&satValL, 255, callback);
+        createTrackbar("SAT-HIGH", "Sliders",&satValH, 255, callback);
+        createTrackbar("VAL-LOW", "Sliders",&valValL, 250, callback);
+        createTrackbar("VAL-HIGH", "Sliders",&valValH, 250, callback);
+
+        Mat output(image.rows, image.cols, CV_8UC3);
+        cvtColor(image, output, COLOR_BGR2HSV);
+        while(true)
+        {
+            Mat threshold;
+            inRange(output, Scalar(hueValL,satValL,valValL),Scalar(hueValH,satValH,valValH),threshold);
+            imshow("sliders", threshold);
+
+            Mat finaal = Mat::zeros(image.rows, image.cols, CV_8UC3);
+            image.copyTo(finaal,threshold);
+            dilate(threshold, threshold, Mat(),Point(-1,1) ,5);
+            erode(threshold, threshold, Mat(),Point(-1,1) ,5);
+
+            vector<vector<Point>> contouren;
+            findContours(threshold.clone(), contouren, RETR_EXTERNAL,CHAIN_APPROX_NONE);
+            vector <vector <Point>> hulls;
+            for(size_t i=0;i<contouren.size();i++)
+            {
+                vector<Point> hull;
+                convexHull(contouren[i],hull);
+                hulls.push_back(hull);
+            }
+            drawContours(threshold,hulls, -1,255,-1);
+            finaal = Mat::zeros(image.rows, image.cols, CV_8UC3);
+            image.copyTo(finaal,threshold);
+
+            namedWindow("verkeersbord", WINDOW_AUTOSIZE);
+            imshow("verkeersbord", finaal);
+
+
+
+            char key = (char) waitKey(1);
+            if (key == 'q' || key == 27)
+            {
+                break;
+            }
+        }
+    }
     return 0;
 }
+
