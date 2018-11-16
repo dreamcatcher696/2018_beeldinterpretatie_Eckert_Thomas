@@ -107,6 +107,9 @@ void MatchingMethod(int, void*)
     mask *= 255;
     imshow("thresholded mask", mask);
 
+    temp2 = grayInput.clone();
+
+
 
 
     imshow(result_window, temp);
