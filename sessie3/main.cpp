@@ -25,7 +25,7 @@ int main(int argc, const char** argv) {
                              "{help h usage ?|       | show this message| in case of MACOS:DO NOT MOVE WINDOW}"
                              "{@template|  | (required) path to template}"
                              "{@input| |(required) path to input inmage}"
-                             "{(f)indall f | | use f to find all matches instead of best match}"
+                             "{findall f | | use f to find all matches instead of best match}"
     );
     //if help
     if (parser.has("help")) {
@@ -127,7 +127,7 @@ void MatchingMethod(int, void*)
             Point maxLoc;
 
             minMaxLoc(temp2,nullptr,nullptr,nullptr,&maxLoc);
-            rectangle(temp, Point(region.x+maxLoc.x, region.y+maxLoc.y), Point(maxLoc.x+region.x+grayTemplate.cols, maxLoc.y+region.y+grayTemplate.rows),Scalar(0,255,0), 2,8,0);
+            rectangle(temp, Point(region.x+maxLoc.x, region.y+maxLoc.y), Point(maxLoc.x+region.x+grayTemplate.cols, maxLoc.y+region.y+grayTemplate.rows),Scalar(0,0,255), 2,8,0);
         }
         imshow(result_window, temp);
         waitKey(0);

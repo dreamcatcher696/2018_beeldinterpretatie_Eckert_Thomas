@@ -67,6 +67,31 @@ om naar het volgend scherm te gaan, gelieve op eender welke knop (behalve de pow
  DO NOT MOVE THE WINDOW WITH THE SLIDERS! IT WILL BREAK THE APPLICATION!!!
  
 ***
+
+## Sessie 3
+
+| Command | Action |
+| ----- | ----- |
+| (h)elp | Display help message |
+| @template| Absolute path to template |
+| @image | Absolute path to image |
+| (f) indall| use this to use multiple template matching|
+
+## usage: 
+```
+./sessie3 template.jpg recht.jpg -f
+```
+
+  * if you use -f, please slide the *amount\_of_matches* to 1
+  * I found that *TM\_CCORR_NORMED* With a threshold of around 223 to work best 
+ 
+## working proof
+![foto of working program](sessie3/Working.png)
+
+	
+
+
+***
   
   
 
