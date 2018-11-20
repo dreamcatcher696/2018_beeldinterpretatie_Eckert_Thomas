@@ -74,7 +74,7 @@ int main(int argc, const char** argv) {
     if(parser.has("f"))
     {
         createTrackbar(amount_of_matches, result_window, &amount_matches,1, MatchingMethod);
-        createTrackbar("Threshold", result_window, &threshval, 100, MatchingMethod);
+        createTrackbar("Threshold", result_window, &threshval, 255, MatchingMethod);
     }
 
 
@@ -115,7 +115,7 @@ void MatchingMethod(int, void*)
         Mat mask;
         inRange(result, ((float)threshval/255),1,mask);
         imshow("Threshold", mask);
-
+        cout<<threshval<<endl;
         Mat temp;
         input.copyTo(temp);
         vector<vector<Point>> contours;
