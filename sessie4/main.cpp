@@ -68,18 +68,41 @@ int main(int argc, const char** argv) {
         orb->detectAndCompute(ORB1, Mat(), keypointsORB1, descriptorsORB1);
         orb->detectAndCompute(ORB2, Mat(), keypointsORB2, descriptorsORB2);
 
-        /*std::vector<DMatch> matches;
-        Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
-        matcher->match(descriptors1, descriptors2, matches, Mat());*/
+        std::vector<DMatch> matchesORB;
+        Ptr<DescriptorMatcher> matcherORB = DescriptorMatcher::create("BruteForce-Hamming");
+        matcherORB->match(descriptorsORB1, descriptorsORB2, matchesORB, Mat());
 
-        //Mat imMatches;
+
+        sort(matchesORB.begin(),matchesORB.end());
+
+        Mat ORBMatches;
+        drawMatches(ORB1, keypointsORB1, ORB2, keypointsORB2, matchesORB, ORBMatches);
 
         drawKeypoints(ORB1, keypointsORB1,ORB1);
         drawKeypoints(ORB2, keypointsORB2, ORB2);
-        //drawMatches(input, keypoints1, object, keypoints2, matches, imMatches);
+
         imshow("ORB_INPUT", ORB1);
         imshow("ORB_OBJECT", ORB2);
+        imshow("ALL_ORB_MATCHES", ORBMatches);
         //waitKey(0);
+
+        // Extract location of good matches
+        std::vector<Point2f> points1, points2;
+
+        for( size_t i = 0; i < matchesORB.size(); i++ )
+        {
+            points1.push_back( keypointsORB1[ matchesORB[i].queryIdx ].pt );
+            points2.push_back( keypointsORB2[ matchesORB[i].trainIdx ].pt );
+        }
+
+        // Find homography
+        Mat h = findHomography( points1, points2, RANSAC );
+        Mat im1Reg;
+        // Use homography to warp image
+        warpPerspective(ORB1, im1Reg, h, ORB2.size());
+        imshow("ORB_RANSAC", im1Reg);
+
+
 
     }
     if(parser.has("BRISK"))
@@ -95,17 +118,22 @@ int main(int argc, const char** argv) {
         brisk->detectAndCompute(BRISK1, Mat(), keypointsBRISK1, descriptorsBRISK1);
         brisk->detectAndCompute(BRISK2, Mat(), keypointsBRISK2, descriptorsBRISK2);
 
-        /*std::vector<DMatch> matches;
-        Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
-        matcher->match(descriptors1, descriptors2, matches, Mat());*/
+        std::vector<DMatch> matchesBRISK;
+        Ptr<DescriptorMatcher> matcherBRISK = DescriptorMatcher::create("BruteForce-Hamming");
+        matcherBRISK->match(descriptorsBRISK1, descriptorsBRISK2, matchesBRISK, Mat());
 
-        //Mat imMatches;
+        sort(matchesBRISK.begin(),matchesBRISK.end());
+        Mat BRISKMatches;
+        drawMatches(BRISK1, keypointsBRISK1, BRISK2, keypointsBRISK2, matchesBRISK, BRISKMatches);
+
+
 
         drawKeypoints(BRISK1, keypointsBRISK1,BRISK1);
         drawKeypoints(BRISK2, keypointsBRISK2, BRISK2);
-        //drawMatches(input, keypoints1, object, keypoints2, matches, imMatches);
+
         imshow("BRISK_INPUT", BRISK1);
         imshow("BRISK_OBJECT", BRISK2);
+        imshow("BRISK_ALL_MATCHES", BRISKMatches);
         //waitKey(0);
 
     }
@@ -122,17 +150,22 @@ int main(int argc, const char** argv) {
         brisk->detectAndCompute(AKAZE1, Mat(), keypointsAKAZE1, descriptorsAKAZE1);
         brisk->detectAndCompute(AKAZE2, Mat(), keypointsAKAZE2, descriptorsAKAZE2);
 
-        /*std::vector<DMatch> matches;
-        Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
-        matcher->match(descriptors1, descriptors2, matches, Mat());*/
+        //BFMatcher matcher(NORM_L2)
 
-        //Mat imMatches;
+        std::vector<DMatch> matchesAKAZE;
+        Ptr<DescriptorMatcher> matcherAKAZE = DescriptorMatcher::create("BruteForce-Hamming");
+        matcherAKAZE->match(descriptorsAKAZE1, descriptorsAKAZE2, matchesAKAZE, Mat());
+
+        sort(matchesAKAZE.begin(),matchesAKAZE.end());
+        Mat AKAZEMatches;
+        drawMatches(AKAZE1, keypointsAKAZE1, AKAZE2, keypointsAKAZE2, matchesAKAZE, AKAZEMatches);
 
         drawKeypoints(AKAZE1, keypointsAKAZE1,AKAZE1);
         drawKeypoints(AKAZE2, keypointsAKAZE2, AKAZE2);
-        //drawMatches(input, keypoints1, object, keypoints2, matches, imMatches);
+
         imshow("AKAZE_INPUT", AKAZE1);
         imshow("AKAZE_OBJECT", AKAZE2);
+        imshow("AKAZE_ALL_MATCHES", AKAZEMatches);
         //waitKey(0);
     }
     waitKey(0);
