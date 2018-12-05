@@ -95,3 +95,31 @@ om naar het volgend scherm te gaan, gelieve op eender welke knop (behalve de pow
   
   
 
+## Sessie 4
+
+***
+
+## Sessie 5
+
+| Command | Action |
+| ----- | ----- |
+| (h)elp | Display help message |
+| @input| Absolute path to input |
+| (k)nearest | kNearest neighbour |
+|(b)ayes| Normal-Bayes|
+|(s)vm| Support vector Machine|
+
+## usage: 
+```
+./sessie5 input.jpg -k -b -s
+```
+## controls
+* Left click to add point
+* Right click to delete last point
+* Middle mousebutton to print list
+
+## notes 
+* The application starts in strawberry mode, as shown on the screen
+* When you are done selecting strawberries, slide the slider to *background*
+* The strawberry points are red, the background points are green
+* When you are done selecting points, press any key and wit for the result.
