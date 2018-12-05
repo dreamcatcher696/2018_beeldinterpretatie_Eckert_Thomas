@@ -7,6 +7,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace ml;
 
 void redrawPuntjes();
 void redrawAll();
@@ -16,7 +17,7 @@ int modus;
 Mat kloon;
 Mat input;
 
-//TODO implement puttext()
+
 
 void mouseCallBack(int event, int x, int y, int flags, void* userdata)
 {
@@ -25,15 +26,15 @@ void mouseCallBack(int event, int x, int y, int flags, void* userdata)
         if(modus==STRAWBERRY)
         {
             strawberryList.push_back(Point(x,y));
-            cout << "Add " << x << " , " << y << " to Strawberry" <<endl;   //TODO ADD POINT WHERE CLICKED
+            cout << "Add " << x << " , " << y << " to Strawberry" <<endl;
             circle(kloon, Point(x,y),2, Scalar(0,0,255), -1);
 
         }
         else
         {
             backgroundList.push_back(Point(x,y));
-            cout << "Add " << x << " , " << y << " to background" <<endl;   //TODO ADD POINT WHERE CLICKED
-            circle(kloon, Point(x,y),2, Scalar(255,0,0), -1);
+            cout << "Add " << x << " , " << y << " to background" <<endl;
+            circle(kloon, Point(x,y),2, Scalar(0,255,0), -1);
 
         }
     }
@@ -45,7 +46,7 @@ void mouseCallBack(int event, int x, int y, int flags, void* userdata)
             {
                 cout << "Strawberry list empty" <<endl;
             } else{
-                cout << "remove " << strawberryList.back().x << " , " << strawberryList.back().y << " from strawberry" <<endl;   //TODO ADD POINT WHERE CLICKED
+                cout << "remove " << strawberryList.back().x << " , " << strawberryList.back().y << " from strawberry" <<endl;
                 strawberryList.pop_back();
                 redrawAll();
             }
@@ -56,7 +57,7 @@ void mouseCallBack(int event, int x, int y, int flags, void* userdata)
             {
                 cout << "Background list empty" << endl;
             } else{
-                cout << "remove " << backgroundList.back().x << " , " << backgroundList.back().y << " from background" <<endl;   //TODO ADD POINT WHERE CLICKED
+                cout << "remove " << backgroundList.back().x << " , " << backgroundList.back().y << " from background" <<endl;
                 backgroundList.pop_back();
                 redrawAll();
             }
@@ -118,6 +119,100 @@ int main(int argc, const char** argv) {
 
     redrawAll();
     waitKey(0);
+    Mat input_hsv;
+    cvtColor(input, input_hsv, COLOR_BGR2HSV);
+
+    Mat trainingStrawberries(strawberryList.size(), 3, CV_32FC1);
+    Mat labelsStrawberries = Mat::ones(strawberryList.size(),1,CV_32SC1);
+
+    Mat trainingBackground(backgroundList.size(), 3, CV_32FC1);
+    Mat labelBackground = Mat::ones(backgroundList.size(),1,CV_32SC1);
+
+    for(int i=0;i<strawberryList.size();i++)
+    {
+        Vec3b descriptor = input_hsv.at<Vec3b>(strawberryList[i].y, strawberryList[i].x);
+        trainingStrawberries.at<float>(i,0) = descriptor[0];
+        trainingStrawberries.at<float>(i,1) = descriptor[1];
+        trainingStrawberries.at<float>(i,2) = descriptor[2];
+    }
+    for(int i=0;i<backgroundList.size();i++)
+    {
+        Vec3b descriptor = input_hsv.at<Vec3b>(backgroundList[i].y, backgroundList[i].x);
+        trainingBackground.at<float>(i,0) = descriptor[0];
+        trainingBackground.at<float>(i,1) = descriptor[1];
+        trainingBackground.at<float>(i,2) = descriptor[2];
+    }
+
+    Mat trainingData;
+    Mat labels;
+    vconcat(trainingStrawberries,trainingBackground,trainingData);
+    vconcat(labelsStrawberries,labelBackground,labels);
+
+    /*
+    cerr << trainingData <<endl;
+    cerr << labels<<endl;
+     */
+
+    Ptr<KNearest> kNN = KNearest::create();
+    Ptr<TrainData> trainingDatakNN = TrainData::create(trainingData, ROW_SAMPLE, labels);
+    kNN->setIsClassifier(true);
+    kNN->setAlgorithmType(KNearest::BRUTE_FORCE);
+    kNN->setDefaultK(3);
+    kNN->train(trainingDatakNN);
+
+    Ptr<NormalBayesClassifier> nB = NormalBayesClassifier::create();
+    nB->train(trainingData, ROW_SAMPLE, labels);
+
+    Ptr<SVM> svm = SVM::create();
+    svm->setType(SVM::C_SVC);
+    svm->setKernel(SVM::LINEAR);
+    svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 100, 1e-6));
+    svm->train(trainingData, ROW_SAMPLE, labels);
+
+    Mat labels_kNN, labels_nB, labels_svm;
+    Mat mask_kNN = Mat::zeros(input.rows,input.cols,CV_8UC1);
+    Mat mask_nB = Mat::zeros(input.rows,input.cols,CV_8UC1);
+    Mat mask_svm = Mat::zeros(input.rows,input.cols,CV_8UC1);
+
+    for(int i=0;i<input.rows;i++)
+    {
+        for(int j=0;j<input.cols;j++)
+        {
+            Vec3b pixval = input_hsv.at<Vec3b>(i,j);
+            Mat data_test(1,3,CV_32FC1);
+            data_test.at<float>(0,0) = pixval[0];
+            data_test.at<float>(0,1) = pixval[1];
+            data_test.at<float>(0,2) = pixval[2];
+            kNN->findNearest(data_test, kNN->getDefaultK(), labels_kNN);
+            nB->predict(data_test, labels_nB);
+            svm->predict(data_test,labels_svm);
+
+            mask_kNN.at<uchar>(i,j) = labels_kNN.at<float>(0,0);
+            mask_nB.at<uchar>(i,j) = labels_nB.at<int>(0,0);
+            mask_svm.at<uchar>(i,j) = labels_svm.at<float>(0,0);
+
+        }
+    }
+    imshow("seg kNearest", mask_kNN*255);
+    imshow("seg normal_Bayes", mask_nB*255);
+    imshow("seg svm", mask_svm*255);
+
+    Mat result_kNN, result_nB, result_svm;
+    bitwise_and(input, input, result_kNN,mask_kNN);
+    bitwise_and(input, input, result_nB,mask_nB);
+    bitwise_and(input, input, result_svm,mask_svm);
+
+    imshow("res kNearest", result_kNN);
+    imshow("res nB", result_nB);
+    imshow("res svm", result_svm);
+    waitKey(0);
+
+
+
+
+
+
+
     return 0;
 }
 void redrawPuntjes()
@@ -125,6 +220,10 @@ void redrawPuntjes()
     for(int i=0;i<strawberryList.size();i++)
     {
         circle(kloon, Point(strawberryList.at(i).x,strawberryList.at(i).y),2, Scalar(0,0,255), -1);
+    }
+    for(int i=0;i<backgroundList.size();i++)
+    {
+        circle(kloon, Point(backgroundList.at(i).x,backgroundList.at(i).y),2, Scalar(0,255,0), -1);
     }
 }
 
