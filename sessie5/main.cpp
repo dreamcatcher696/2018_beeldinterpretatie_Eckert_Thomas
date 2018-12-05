@@ -126,7 +126,7 @@ int main(int argc, const char** argv) {
     Mat labelsStrawberries = Mat::ones(strawberryList.size(),1,CV_32SC1);
 
     Mat trainingBackground(backgroundList.size(), 3, CV_32FC1);
-    Mat labelBackground = Mat::ones(backgroundList.size(),1,CV_32SC1);
+    Mat labelBackground = Mat::zeros(backgroundList.size(),1,CV_32SC1);
 
     for(int i=0;i<strawberryList.size();i++)
     {
