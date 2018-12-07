@@ -1,6 +1,6 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <string.h>
+
 
 
 using namespace std;
@@ -69,7 +69,7 @@ int main(int argc, const char** argv) {
             cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
             haar_cascade.detectMultiScale(frame_gray, gezichtenHaar, scoresHaar, 1.05,3);   //detect face with cascade
             lbp_cascade.detectMultiScale(frame_gray,gezichtenLBP,scoresLBP,1.05,3);         //detect face with lbp
-            for(int i=0;i<gezichtenHaar.size();i++)     //for every face in the frame, draw bounding box and score
+            for(unsigned long i=0;i<gezichtenHaar.size();i++)     //for every face in the frame, draw bounding box and score
             {
                 int a = scoresHaar.at(i);               //sketchy way of converting int to string
                 stringstream ss;
@@ -79,7 +79,7 @@ int main(int argc, const char** argv) {
                 rectangle(frame, Point(gezichtenHaar.at(i).x,gezichtenHaar.at(i).y), Point(gezichtenHaar.at(i).x+gezichtenHaar.at(i).width,gezichtenHaar.at(i).y+gezichtenHaar.at(i).height),Scalar(0,0,255));
                 putText(frame,str,Point(gezichtenHaar.at(i).x,gezichtenHaar.at(i).y),FONT_HERSHEY_COMPLEX, 1,Scalar(0,0,255) ,1);
             }
-            for(int i=0;i<gezichtenLBP.size();i++)      //same as above
+            for(unsigned long i=0;i<gezichtenLBP.size();i++)      //same as above
             {
                 int b = scoresLBP.at(i);
                 stringstream ss;
@@ -91,7 +91,8 @@ int main(int argc, const char** argv) {
             }
 
             imshow("frame", frame);     //show the frame
-            waitKey(1);
+            auto c=(char)waitKey(25);
+            if(c==27 or c=='q') break;
 
         }
         input.release();
@@ -129,7 +130,7 @@ int main(int argc, const char** argv) {
                 ss << a;
                 string str = ss.str();
                 putText(frame,str,Point(r.x,r.y+50),FONT_HERSHEY_SIMPLEX, 1,Scalar(255,0,0));   //draw str
-                tracking.push_back(Point(r.x+r.width/2,r.y+r.height/2));        //push middle of rect to tracking list for drawing history of position
+                tracking.emplace_back(Point(r.x+r.width/2,r.y+r.height/2));        //push middle of rect to tracking list for drawing history of position
             }
             for(int j=1;j<tracking.size();j++)  //j = 1 to avoid out of range
             {
@@ -137,7 +138,8 @@ int main(int argc, const char** argv) {
             }
 
             imshow("frame", frame);
-            waitKey(1);
+            auto c=(char)waitKey(25);
+            if(c==27 or c=='q') break;
         }
         input.release();
         destroyAllWindows();
