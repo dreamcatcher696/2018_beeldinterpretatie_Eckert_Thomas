@@ -92,12 +92,18 @@ int main(int argc, const char** argv) {
     if(parser.has("person"))
     {
         VideoCapture input = VideoCapture(input_path);
-        CascadeClassifier hogdetector
+        HOGDescriptor hog;
+        hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
 
+        vector<Rect> person;
+        vector<double>weight;
+        vector<Point>tracking;
         while(input.isOpened())
         {
+
             Mat frame, frame_gray;
             input.read(frame);
+            resize(frame, frame, Size(frame.cols*2,frame.rows*2));
             if(frame.empty())
             {
                 cerr<< "error reading frame"<<endl;
@@ -105,34 +111,24 @@ int main(int argc, const char** argv) {
             }
             cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
 
-            haar_cascade.detectMultiScale(frame_gray, gezichtenHaar, scoresHaar, 1.05,3);
-            lbp_cascade.detectMultiScale(frame_gray,gezichtenLBP,scoresLBP,1.05,3);
-            Mat frame_bgr(frame_gray.size(), CV_8UC3);
-            cvtColor(frame_gray, frame_bgr, CV_GRAY2BGR);
-            for(int i=0;i<gezichtenHaar.size();i++)
+            hog.detectMultiScale(frame, person,weight);
+
+            for(int i=0;i<person.size();i++)
             {
-                int a = scoresHaar.at(i);
+                Rect r = person[i];
+                rectangle(frame, r, Scalar(255,0,0));
                 stringstream ss;
-                ss<<a;
-                string str = ss.str();
-
-                rectangle(frame_bgr, Point(gezichtenHaar.at(i).x,gezichtenHaar.at(i).y), Point(gezichtenHaar.at(i).x+gezichtenHaar.at(i).width,gezichtenHaar.at(i).y+gezichtenHaar.at(i).height),Scalar(0,0,255));
-
-                putText(frame_bgr,str,Point(gezichtenHaar.at(i).x,gezichtenHaar.at(i).y),FONT_HERSHEY_COMPLEX, 1,Scalar(0,0,255) ,1);
-
+                ss << weight[i];
+                putText(frame,ss.str(),Point(r.x,r.y+50),FONT_HERSHEY_SIMPLEX, 1,Scalar(255,0,0));
+                tracking.push_back(Point(r.x+r.width/2,r.y+r.height/2));
             }
-            for(int i=0;i<gezichtenLBP.size();i++)
+            for(int j=0;j<tracking.size();j++)
             {
-                int b = scoresLBP.at(i);
-                stringstream ss;
-                ss << b;
-                string str2 = ss.str();
-                rectangle(frame_bgr, Point(gezichtenLBP.at(i).x,gezichtenLBP.at(i).y), Point(gezichtenLBP.at(i).x+gezichtenLBP.at(i).width,gezichtenLBP.at(i).y+gezichtenLBP.at(i).height),Scalar(0,255,0));
-                putText(frame_bgr,str2,Point(gezichtenLBP.at(i).x,gezichtenLBP.at(i).y),FONT_HERSHEY_COMPLEX, 1,Scalar(0,255,0) ,1);
-
+                line(frame, tracking[j-1], tracking[j], Scalar(255,255,255), 2);
             }
 
-            imshow("frame", frame_bgr);
+
+            imshow("frame", frame);
             /*if(waitKey(10)  == 'q')
             {
                 break;
