@@ -71,21 +71,24 @@ int main(int argc, const char** argv) {
             lbp_cascade.detectMultiScale(frame_gray,gezichtenLBP,scoresLBP,1.05,3);         //detect face with lbp
             for(unsigned long i=0;i<gezichtenHaar.size();i++)     //for every face in the frame, draw bounding box and score
             {
+                Rect r = gezichtenHaar[i];
                 int a = scoresHaar.at(i);               //sketchy way of converting int to string
                 stringstream ss;
                 ss<<a;
                 string str = ss.str();
-
-                rectangle(frame, Point(gezichtenHaar.at(i).x,gezichtenHaar.at(i).y), Point(gezichtenHaar.at(i).x+gezichtenHaar.at(i).width,gezichtenHaar.at(i).y+gezichtenHaar.at(i).height),Scalar(0,0,255));
+                ellipse(frame, Point(r.x+r.width/2,r.y+r.height/2),Size(r.width/2,r.height/2),0,0,360,Scalar(0,0,255),2);
+                //rectangle(frame, Point(gezichtenHaar.at(i).x,gezichtenHaar.at(i).y), Point(gezichtenHaar.at(i).x+gezichtenHaar.at(i).width,gezichtenHaar.at(i).y+gezichtenHaar.at(i).height),Scalar(0,0,255));
                 putText(frame,str,Point(gezichtenHaar.at(i).x,gezichtenHaar.at(i).y),FONT_HERSHEY_COMPLEX, 1,Scalar(0,0,255) ,1);
             }
             for(unsigned long i=0;i<gezichtenLBP.size();i++)      //same as above
             {
+                Rect r = gezichtenLBP[i];
                 int b = scoresLBP.at(i);
                 stringstream ss;
                 ss << b;
                 string str2 = ss.str();
-                rectangle(frame, Point(gezichtenLBP.at(i).x,gezichtenLBP.at(i).y), Point(gezichtenLBP.at(i).x+gezichtenLBP.at(i).width,gezichtenLBP.at(i).y+gezichtenLBP.at(i).height),Scalar(0,255,0));
+                ellipse(frame, Point(r.x+r.width/2,r.y+r.height/2),Size(r.width/2,r.height/2),0,0,360,Scalar(0,255,0),2);
+                //rectangle(frame, Point(gezichtenLBP.at(i).x,gezichtenLBP.at(i).y), Point(gezichtenLBP.at(i).x+gezichtenLBP.at(i).width,gezichtenLBP.at(i).y+gezichtenLBP.at(i).height),Scalar(0,255,0));
                 putText(frame,str2,Point(gezichtenLBP.at(i).x,gezichtenLBP.at(i).y+gezichtenLBP.at(i).height+25),FONT_HERSHEY_SIMPLEX, 1,Scalar(0,255,0) ,1);
 
             }
