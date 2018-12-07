@@ -123,3 +123,20 @@ om naar het volgend scherm te gaan, gelieve op eender welke knop (behalve de pow
 * When you are done selecting strawberries, slide the slider to *background*
 * The strawberry points are red, the background points are green
 * When you are done selecting points, press any key and wit for the result.
+
+***
+
+## Sessie 6
+
+| Command | Action |
+| ----- | ----- |
+| (h)elp | Display help message |
+| @input| Absolute path to input |
+| @haarcascade|Required: (absolute) path to Haar cascade XML||
+|@lbpcascade|Required: (absolute) path to lbp cascade XML|
+|(f)ace|  do the face part of the asignment (both detectors)|
+|(p)person| do the person part of the assignment|
+## usage: 
+```
+./sessie6 input.mp4 haar.xml lbp.xml -f
+```
