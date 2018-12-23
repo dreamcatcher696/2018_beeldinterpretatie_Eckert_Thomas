@@ -85,7 +85,7 @@ int main(int argc, const char** argv) {
                 Rect r = gezichtenLBP[i];
                 int b = scoresLBP.at(i);
                 stringstream ss;
-                ss << b;
+                ss << b;q
                 string str2 = ss.str();
                 ellipse(frame, Point(r.x+r.width/2,r.y+r.height/2),Size(r.width/2,r.height/2),0,0,360,Scalar(0,255,0),2);
                 //rectangle(frame, Point(gezichtenLBP.at(i).x,gezichtenLBP.at(i).y), Point(gezichtenLBP.at(i).x+gezichtenLBP.at(i).width,gezichtenLBP.at(i).y+gezichtenLBP.at(i).height),Scalar(0,255,0));
