@@ -1,7 +1,24 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <algorithm>
 using namespace std;
 using namespace cv;
+
+struct myclass {
+    bool operator() (int pt1, int pt2) { return (pt1 < pt2);}
+} comparator;
+
+void mouseCallBack(int event, int x, int y, int flags, void* userdata)
+{
+    if(event==EVENT_LBUTTONDOWN)    //add point
+    {
+
+        cout << "Point " << x << " , " << y <<  endl;
+
+    }
+}
+
+
 
 int main(int argc, const char** argv) {
     /**
@@ -69,17 +86,18 @@ int main(int argc, const char** argv) {
     waitKey(0);
 
 
-    Mat edges(image_gray.size(), image_gray.type());
     Mat dst(image_gray.size(), input.type());
-    //Canny(notenbalk, edges, 100, 255);
-    //imshow("edges", edges);
-    waitKey(0);
+
+
+
+
+
+
 
 
     vector<Vec2f> lines;
+    vector<int> lijnen;
     HoughLines(notenbalk, lines, 1, CV_PI/180, 1000,0,0);
-    //vector<Vec4i> lines;
-    //HoughLinesP(edges, lines, 1, CV_PI/180, 1, 50, 10 );
     cout << lines.size() << endl;
     for( size_t i = 0; i < lines.size(); i++ )
     {
@@ -87,15 +105,53 @@ int main(int argc, const char** argv) {
         Point pt1, pt2;
         double a = cos(theta), b = sin(theta);
         double x0 = a*rho, y0 = b*rho;
-        pt1.x = cvRound(x0 + 1000*(-b));
-        pt1.y = cvRound(y0 + 1000*(a));
-        pt2.x = cvRound(x0 - 1000*(-b));
-        pt2.y = cvRound(y0 - 1000*(a));
+        cout << "x0: " << x0 << ", y0: " << y0 <<endl;
+        cout << "rho: " << rho << "theta " << theta <<endl;
+        pt1.x = 0;
+        pt1.y = y0;
+        pt2.x = dst.cols;
+        pt2.y = y0;
         line( dst, pt1, pt2, Scalar(0,0,255), 1, CV_AA);
+        lijnen.push_back(y0);
+        //cout << "p1: "<<pt1.x<< ',' << pt1.y << ";pt2" << pt2.x <<"," <<pt2.y<<endl;
     }
 
+    namedWindow("lijnen", WINDOW_AUTOSIZE);   //create a window to display everything
+    setMouseCallback("lijnen", mouseCallBack,NULL);    //enable the mousecallback
     imshow("lijnen", dst);
     waitKey(0);
+
+    sort(lijnen.begin(),lijnen.end(),comparator);
+    for(int i=0;i<lijnen.size();i++)
+    {
+        cout << lijnen.at(i) << endl;
+    }
+    int mi_lijn = lijnen.at(0);
+    int sol_lijn = lijnen.at(1);
+    int si_lijn = lijnen.at(2);
+    int re_lijn = lijnen.at(3);
+    int fa_lijn = lijnen.at(4);
+
+
+    Mat noten = bin.clone();
+    // Specify size on vertical axis
+    int verticalsize = noten.rows /200;
+
+    // Create structure element for extracting vertical lines through morphology operations
+    Mat verticalStructure = getStructuringElement(MORPH_RECT, Size( 1,verticalsize));
+
+    // Apply morphology operations
+    erode(noten, noten, verticalStructure, Point(-1, -1));
+    dilate(noten, noten, verticalStructure, Point(-1, -1));
+
+
+    imshow("vertical", noten);
+    waitKey(0);
+
+    vector<Vec2f> bolletjes;
+
+
+
 
 
     return 0;
