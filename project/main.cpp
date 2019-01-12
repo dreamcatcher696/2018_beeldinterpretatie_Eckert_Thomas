@@ -27,6 +27,7 @@ void mouseCallBack(int event, int x, int y, int flags, void* userdata)
 
 
 int main(int argc, const char** argv) {
+
     /**
      * @brief function that prints the help message, and parses the user input
      */
@@ -62,7 +63,7 @@ int main(int argc, const char** argv) {
     }
 
     Mat image_gray;
-
+    Mat finaal = Mat::zeros(input.size(),input.type());
     cvtColor(input, image_gray, COLOR_BGR2GRAY);
 
 
@@ -121,6 +122,7 @@ int main(int argc, const char** argv) {
         pt2.y = y0;
         line( dst, pt1, pt2, Scalar(0,0,255), 1, CV_AA);
         line( notenbalk_lijnen, pt1, pt2, Scalar(0,0,255), 1, CV_AA);
+        line(finaal, pt1, pt2, Scalar(255, 255, 255), 1, CV_AA);
 
         lijnen.push_back(y0);
         //cout << "p1: "<<pt1.x<< ',' << pt1.y << ";pt2" << pt2.x <<"," <<pt2.y<<endl;
@@ -137,13 +139,45 @@ int main(int argc, const char** argv) {
     sort(lijnen.begin(),lijnen.end(),comparator);
     for(int i=0;i<lijnen.size();i++)
     {
-        cout << lijnen.at(i) << endl;
+        //cout << lijnen.at(i) << endl;
     }
+
     int fa_lijn = lijnen.at(0);
     int re_lijn = lijnen.at(1);
     int si_lijn = lijnen.at(2);
     int sol_lijn = lijnen.at(3);
     int mi_lijn = lijnen.at(4);
+    int helft = (fa_lijn-re_lijn)/2;
+
+    int C3 = mi_lijn + 2*helft;
+    int D3 = mi_lijn + helft;
+    int E3 = mi_lijn;
+    int F3 = mi_lijn - helft;
+    int G3 = sol_lijn;
+    int A3 = sol_lijn - helft;
+    int B3 = si_lijn;
+    int C4 = si_lijn-helft;
+    int D4 = re_lijn;
+    int E4 = re_lijn-helft;
+    int F4 = fa_lijn;
+    int G4 = fa_lijn - helft;
+    int A4 = fa_lijn -2*helft;
+    cout << "C3: " << C3 << endl;
+    cout << "D3: " << D3 << endl;
+    cout << "E3: " << F3 << endl;
+    cout << "F3: " << F3 << endl;
+    cout << "G3: " << G3 << endl;
+    cout << "A3: " << A3 << endl;
+    cout << "B3: " << B3 << endl;
+    cout << "C4: " << C4 << endl;
+    cout << "D4: " << D4 << endl;
+    cout << "E4: " << E4 << endl;
+    cout << "F4: " << F4 << endl;
+    cout << "G4: " << G4 << endl;
+    cout << "A4: " << A4 << endl;
+
+
+
 
 
     Mat noten = bin.clone();
@@ -182,7 +216,7 @@ int main(int argc, const char** argv) {
         waitKey(0);
     }
 
-    cout << "voor:" << contouren.size() <<endl;
+    //cout << "voor:" << contouren.size() <<endl;
     vector<vector<Point>> naaa;
     for(int i=0;i<contouren.size();i++)
     {
@@ -192,7 +226,7 @@ int main(int argc, const char** argv) {
         if(contouren.at(i).at(0).y<200)
         {
             contouren.erase(contouren.begin()+i);
-            cout << "erased" <<endl<<endl;
+            //cout << "erased" <<endl<<endl;
         }
         else{
             naaa.push_back(contouren.at(i));
@@ -202,7 +236,7 @@ int main(int argc, const char** argv) {
     sort(naaa.begin(),naaa.end(),comparator2);
     for(int i=0;i<naaa.size();i++)
     {
-        cout << "contour " << i << ":" << naaa.at(i) <<endl<<endl;
+        //cout << "contour " << i << ":" << naaa.at(i) <<endl<<endl;
     }
 
     /////////
@@ -219,11 +253,24 @@ int main(int argc, const char** argv) {
 
     vector<vector<Point>> noten_bollen_contouren;
     findContours(noten_bollen.clone(), noten_bollen_contouren, RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);
-    Mat finaal = Mat::zeros(input.size(),input.type());
-    cout << "aantal noten: " << noten_bollen_contouren.size() << endl;
+
+    //cout << "aantal noten: " << noten_bollen_contouren.size() << endl;
+    sort(noten_bollen_contouren.begin(),noten_bollen_contouren.end(),comparator2);
     drawContours(finaal, noten_bollen_contouren, -1, Scalar(255,0,0),-1);
-    imshow("YOLOSWAG", finaal);
-    waitKey(0);
+
+
+    for(int i=0;i<noten_bollen_contouren.size();i++)
+    {
+        cout << "noot " << i <<" : "  << boundingRect(noten_bollen_contouren.at(i)).x<<","<< boundingRect(noten_bollen_contouren.at(i)).y<<endl;
+        cout << "midden: " << boundingRect(noten_bollen_contouren.at(i)).x+boundingRect(noten_bollen_contouren.at(i)).width/2<<" , "<<boundingRect(noten_bollen_contouren.at(i)).y+boundingRect(noten_bollen_contouren.at(i)).height/2 << endl;
+    }
+
+
+
+
+
+
+
 
 
 
@@ -238,22 +285,37 @@ int main(int argc, const char** argv) {
     dilate(noten_lijnen, noten_lijnen, verticalStructure2, Point(-1, -1));
 
     vector<vector<Point>> noten_lijnen_contouren;
-    findContours(noten_lijnen.clone(), noten_lijnen_contouren, RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);
+    findContours(noten_lijnen.clone(), noten_lijnen_contouren, RETR_EXTERNAL,CHAIN_APPROX_NONE);
     sort(noten_lijnen_contouren.begin(),noten_lijnen_contouren.end(),comparator2);
 
     vector<vector<Point>> maatstrepen;
+    vector<vector<Point>> nootlijnen;
     for(int i=0;i<noten_lijnen_contouren.size();i++)
     {
-        cout << "contour " << i << endl;
-        cout << "width: " << boundingRect(noten_lijnen_contouren.at(i)).width <<"; height: " << boundingRect(noten_lijnen_contouren.at(i)).height << endl;
-        if(boundingRect(noten_lijnen_contouren.at(i)).height==(mi_lijn- fa_lijn) or boundingRect(noten_lijnen_contouren.at(i)).height==(mi_lijn-fa_lijn+1) or boundingRect(noten_lijnen_contouren.at(i)).height==(mi_lijn-fa_lijn+2))
+
+        //cout << "contour " << i << endl;
+        //cout << "width: " << boundingRect(noten_lijnen_contouren.at(i)).width <<"; height: " << boundingRect(noten_lijnen_contouren.at(i)).height << endl;
+        if(boundingRect(noten_lijnen_contouren.at(i)).height==(mi_lijn- fa_lijn) or boundingRect(noten_lijnen_contouren.at(i)).height==((mi_lijn-fa_lijn)+1) or boundingRect(noten_lijnen_contouren.at(i)).height==(mi_lijn-fa_lijn+2))
         {
             maatstrepen.push_back(noten_lijnen_contouren.at(i));
-            noten_lijnen_contouren.erase(noten_lijnen_contouren.begin()+i);
+            //noten_lijnen_contouren.erase(noten_lijnen_contouren.begin()+i);
+            //cout << "maatstreep!" <<endl<<endl;
+        } else{
+            nootlijnen.push_back(noten_lijnen_contouren.at(i));
+            //cout << "nootlijn" <<endl<<endl;
         }
     }
-    cout << noten_lijnen_contouren.size() << " noten gedetcteerd" << endl;
-    cout << maatstrepen.size() << " maatstrepen gedetecteerd" << endl;
+    //cout << nootlijnen.size() << " noten gedetcteerd" << endl;
+    //cout << maatstrepen.size() << " maatstrepen gedetecteerd" << endl;
+    drawContours(finaal, nootlijnen, -1, Scalar(255,0,255),-1);
+
+    drawContours(finaal, maatstrepen, -1, Scalar(255,255,255),-1);
+    namedWindow("finaal", WINDOW_AUTOSIZE);   //create a window to display everything
+    setMouseCallback("finaal", mouseCallBack,NULL);    //enable the mousecallback
+    imshow("finaal", finaal);
+    waitKey(0);
+
+
 
     //imshow("noten_lijnen", noten_lijnen);
     //waitKey(0);
@@ -277,11 +339,11 @@ int main(int argc, const char** argv) {
 
 
     //drawContours(na, naaa, -1, Scalar(255,0,0),-1);
-    if(parser.has("debug"))
+    /*if(parser.has("debug"))
     {
         imshow("noten?", na);
         waitKey(0);
-    }
+    }*/
 
 
    //notenbalk_lijnen.convertTo(noten_bollen, CV_32FC1);
