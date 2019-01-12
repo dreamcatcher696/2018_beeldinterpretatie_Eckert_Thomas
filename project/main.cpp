@@ -97,6 +97,7 @@ int main(int argc, const char** argv) {
 
 
     Mat dst(image_gray.size(), input.type());
+    Mat notenbalk_lijnen = Mat::zeros(image_gray.size(), CV_32SC3);
 
     vector<Vec2f> lines;
     vector<int> lijnen;
@@ -119,6 +120,8 @@ int main(int argc, const char** argv) {
         pt2.x = dst.cols;
         pt2.y = y0;
         line( dst, pt1, pt2, Scalar(0,0,255), 1, CV_AA);
+        line( notenbalk_lijnen, pt1, pt2, Scalar(0,0,255), 1, CV_AA);
+
         lijnen.push_back(y0);
         //cout << "p1: "<<pt1.x<< ',' << pt1.y << ";pt2" << pt2.x <<"," <<pt2.y<<endl;
     }
@@ -139,8 +142,8 @@ int main(int argc, const char** argv) {
     int fa_lijn = lijnen.at(0);
     int re_lijn = lijnen.at(1);
     int si_lijn = lijnen.at(2);
-    int sol = lijnen.at(3);
-    int mi = lijnen.at(4);
+    int sol_lijn = lijnen.at(3);
+    int mi_lijn = lijnen.at(4);
 
 
     Mat noten = bin.clone();
@@ -203,27 +206,57 @@ int main(int argc, const char** argv) {
     }
 
     /////////
-    Mat changeme = Mat::zeros(image_gray.size(), CV_32FC1);
-    //Mat changeme = Mat::zeros(image_gray.size(),3,CV_32FC1);
-    drawContours(changeme, naaa, -1, Scalar(255,0,0),-1);
-
+    Mat noten_bollen = Mat::zeros(image_gray.size(), CV_8UC1);
+    drawContours(noten_bollen, naaa, -1, Scalar(255,0,0),-1);
 
     Mat elipsStructure = getStructuringElement(MORPH_ELLIPSE, Size(8,4));
-    erode(changeme, changeme, elipsStructure, Point(-1, -1));
-    dilate(changeme, changeme, elipsStructure, Point(-1, -1));
-    imshow("na", changeme);
+    erode(noten_bollen, noten_bollen, elipsStructure, Point(-1, -1));
+    dilate(noten_bollen, noten_bollen, elipsStructure, Point(-1, -1));
+    imshow("noten_bollen", noten_bollen);
     waitKey(0);
 
-    /*int verticalsize2 = changeme.rows /50;
+
+
+    vector<vector<Point>> noten_bollen_contouren;
+    findContours(noten_bollen.clone(), noten_bollen_contouren, RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);
+    Mat finaal = Mat::zeros(input.size(),input.type());
+    cout << "aantal noten: " << noten_bollen_contouren.size() << endl;
+    drawContours(finaal, noten_bollen_contouren, -1, Scalar(255,0,0),-1);
+    imshow("YOLOSWAG", finaal);
+    waitKey(0);
+
+
+
+    Mat noten_lijnen = Mat::zeros(image_gray.size(), CV_8UC1);
+    drawContours(noten_lijnen, naaa, -1, Scalar(255,0,0),-1);
+    int verticalsize2 = noten_lijnen.rows /50;
 
     Mat verticalStructure2 = getStructuringElement(MORPH_RECT, Size( 1,verticalsize2));
 
 
-    erode(changeme, changeme, verticalStructure2, Point(-1, -1));
-    dilate(changeme, changeme, verticalStructure2, Point(-1, -1));
+    erode(noten_lijnen, noten_lijnen, verticalStructure2, Point(-1, -1));
+    dilate(noten_lijnen, noten_lijnen, verticalStructure2, Point(-1, -1));
 
-    imshow("na", changeme);
-    waitKey(0);*/
+    vector<vector<Point>> noten_lijnen_contouren;
+    findContours(noten_lijnen.clone(), noten_lijnen_contouren, RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);
+    sort(noten_lijnen_contouren.begin(),noten_lijnen_contouren.end(),comparator2);
+
+    vector<vector<Point>> maatstrepen;
+    for(int i=0;i<noten_lijnen_contouren.size();i++)
+    {
+        cout << "contour " << i << endl;
+        cout << "width: " << boundingRect(noten_lijnen_contouren.at(i)).width <<"; height: " << boundingRect(noten_lijnen_contouren.at(i)).height << endl;
+        if(boundingRect(noten_lijnen_contouren.at(i)).height==(mi_lijn- fa_lijn) or boundingRect(noten_lijnen_contouren.at(i)).height==(mi_lijn-fa_lijn+1) or boundingRect(noten_lijnen_contouren.at(i)).height==(mi_lijn-fa_lijn+2))
+        {
+            maatstrepen.push_back(noten_lijnen_contouren.at(i));
+            noten_lijnen_contouren.erase(noten_lijnen_contouren.begin()+i);
+        }
+    }
+    cout << noten_lijnen_contouren.size() << " noten gedetcteerd" << endl;
+    cout << maatstrepen.size() << " maatstrepen gedetecteerd" << endl;
+
+    //imshow("noten_lijnen", noten_lijnen);
+    //waitKey(0);
     ////////
     /*vector<vector<Point> > contours_poly( naaa.size() );
     vector<Rect> boundRect( naaa.size() );
@@ -251,6 +284,15 @@ int main(int argc, const char** argv) {
     }
 
 
+   //notenbalk_lijnen.convertTo(noten_bollen, CV_32FC1);
+
+    Mat final = Mat::zeros(image_gray.size(), CV_32FC1);
+    Mat temp = Mat::zeros(image_gray.size(),CV_32FC1);
+
+    //addWeighted(noten_bollen,1,noten_lijnen,1,0.0,temp);
+    //addWeighted(temp,1, notenbalk_lijnen,1,0.0,final);
+    //imshow("final", temp);
+   // waitKey(0);
 
 
 
