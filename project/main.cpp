@@ -4,7 +4,7 @@
 using namespace std;
 using namespace cv;
 
-
+void calcnote(int,int,int,int);
 RNG rng(12345);
 struct myclass {
     bool operator() (int pt1, int pt2) { return (pt1 < pt2);}
@@ -139,7 +139,7 @@ int main(int argc, const char** argv) {
     sort(lijnen.begin(),lijnen.end(),comparator);
     for(int i=0;i<lijnen.size();i++)
     {
-        //cout << lijnen.at(i) << endl;
+        cout << lijnen.at(i) << endl;
     }
 
     int fa_lijn = lijnen.at(0);
@@ -149,22 +149,22 @@ int main(int argc, const char** argv) {
     int mi_lijn = lijnen.at(4);
     int helft = (fa_lijn-re_lijn)/2;
 
-    int C3 = mi_lijn + 2*helft;
-    int D3 = mi_lijn + helft;
+    int C3 = mi_lijn - 2*helft;
+    int D3 = mi_lijn - helft;
     int E3 = mi_lijn;
-    int F3 = mi_lijn - helft;
+    int F3 = mi_lijn + helft;
     int G3 = sol_lijn;
-    int A3 = sol_lijn - helft;
+    int A3 = sol_lijn + helft;
     int B3 = si_lijn;
-    int C4 = si_lijn-helft;
+    int C4 = si_lijn + helft;
     int D4 = re_lijn;
-    int E4 = re_lijn-helft;
+    int E4 = re_lijn + helft;
     int F4 = fa_lijn;
-    int G4 = fa_lijn - helft;
-    int A4 = fa_lijn -2*helft;
+    int G4 = fa_lijn + helft;
+    int A4 = fa_lijn + 2*helft;
     cout << "C3: " << C3 << endl;
     cout << "D3: " << D3 << endl;
-    cout << "E3: " << F3 << endl;
+    cout << "E3: " << E3 << endl;
     cout << "F3: " << F3 << endl;
     cout << "G3: " << G3 << endl;
     cout << "A3: " << A3 << endl;
@@ -261,8 +261,103 @@ int main(int argc, const char** argv) {
 
     for(int i=0;i<noten_bollen_contouren.size();i++)
     {
-        cout << "noot " << i <<" : "  << boundingRect(noten_bollen_contouren.at(i)).x<<","<< boundingRect(noten_bollen_contouren.at(i)).y<<endl;
-        cout << "midden: " << boundingRect(noten_bollen_contouren.at(i)).x+boundingRect(noten_bollen_contouren.at(i)).width/2<<" , "<<boundingRect(noten_bollen_contouren.at(i)).y+boundingRect(noten_bollen_contouren.at(i)).height/2 << endl;
+        //cout << "noot " << i <<" : "  << boundingRect(noten_bollen_contouren.at(i)).x<<","<< boundingRect(noten_bollen_contouren.at(i)).y<<endl;
+        //cout << "midden: " << boundingRect(noten_bollen_contouren.at(i)).x+boundingRect(noten_bollen_contouren.at(i)).width/2<<" , "<<boundingRect(noten_bollen_contouren.at(i)).y+boundingRect(noten_bollen_contouren.at(i)).height/2 << endl;
+
+        //calc note
+        int pos = (boundingRect(noten_bollen_contouren.at(i)).y + (boundingRect(noten_bollen_contouren.at(i)).y+boundingRect(noten_bollen_contouren.at(i)).height/2))/2;
+        int nootgevonden=0;
+        int loopcounter=0;
+        while(nootgevonden==0)
+        {
+            if(pos==C3)
+            {
+                cout << "noot " << i << " C3" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==D3)
+            {
+                cout << "noot " << i << " D3" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==E3)
+            {
+                cout << "noot " << i << " E3" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==F3)
+            {
+                cout << "noot " << i << " F3" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==G3)
+            {
+                cout << "noot " << i << " G3" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==A3)
+            {
+                cout << "noot " << i << " A3" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==B3)
+            {
+                cout << "noot " << i << " B3" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==C4)
+            {
+                cout << "noot " << i << " C4" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==D4)
+            {
+                cout << "noot " << i << " D4" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==E4)
+            {
+                cout << "noot " << i << " E4" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==F4)
+            {
+                cout << "noot " << i << " F4" <<endl;
+
+                nootgevonden=1;
+            }
+            else if(pos==G4)
+            {
+                cout << "noot " << i << " G4" <<endl;
+                nootgevonden=1;
+            }
+            else if(pos==A4)
+            {
+                cout << "noot " << i << " A4" <<endl;
+                nootgevonden=1;
+            }
+            else{
+                loopcounter++;
+                if(loopcounter<3)
+                {
+                    pos--;
+                } else if(loopcounter==3)
+                {
+                    pos+=3;
+                } else
+                {
+                    pos++;
+                }
+                if(loopcounter==5)
+                {
+                    cerr << "noot " << i << " Niet gevonden" <<endl;
+                    nootgevonden=1;
+                }
+            }
+
+
+        }
+
     }
 
 
@@ -362,3 +457,4 @@ int main(int argc, const char** argv) {
     return 0;
 
 }
+
