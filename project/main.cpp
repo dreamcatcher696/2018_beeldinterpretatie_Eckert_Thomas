@@ -4,9 +4,15 @@
 using namespace std;
 using namespace cv;
 
+
+RNG rng(12345);
 struct myclass {
     bool operator() (int pt1, int pt2) { return (pt1 < pt2);}
 } comparator;
+
+struct myclass2 {
+    bool operator() (vector<Point> pt1, vector<Point> pt2) {return (pt1.at(0).x < pt2.at(0).x);}
+} comparator2;
 
 void mouseCallBack(int event, int x, int y, int flags, void* userdata)
 {
@@ -56,6 +62,7 @@ int main(int argc, const char** argv) {
     }
 
     Mat image_gray;
+
     cvtColor(input, image_gray, COLOR_BGR2GRAY);
 
 
@@ -63,17 +70,16 @@ int main(int argc, const char** argv) {
         namedWindow("gray image", WINDOW_AUTOSIZE);
         imshow("gray image", image_gray);
         waitKey(0);
-
-
-
     }
     Mat bin(image_gray.size(), image_gray.type());
     image_gray = ~image_gray;
     adaptiveThreshold(image_gray, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY,15, -2);
 
-    imshow("test", bin);
-    waitKey(0);
-
+    if(parser.has("debug"))
+    {
+        imshow("binary image", bin);
+        waitKey(0);
+    }
 
 
     Mat notenbalk = bin.clone();
@@ -82,18 +88,15 @@ int main(int argc, const char** argv) {
     Mat horizontalStructure = getStructuringElement(MORPH_RECT, Size(horizontalsize, 1));
     erode(notenbalk,notenbalk,horizontalStructure);
     dilate(notenbalk, notenbalk, horizontalStructure);
-    imshow("notenbalk", notenbalk);
-    waitKey(0);
+    if(parser.has("debug"))
+    {
+        imshow("notenbalk", notenbalk);
+        waitKey(0);
+    }
+
 
 
     Mat dst(image_gray.size(), input.type());
-
-
-
-
-
-
-
 
     vector<Vec2f> lines;
     vector<int> lijnen;
@@ -105,8 +108,12 @@ int main(int argc, const char** argv) {
         Point pt1, pt2;
         double a = cos(theta), b = sin(theta);
         double x0 = a*rho, y0 = b*rho;
-        cout << "x0: " << x0 << ", y0: " << y0 <<endl;
-        cout << "rho: " << rho << "theta " << theta <<endl;
+        if(parser.has("debug"))
+        {
+            cout << "x0: " << x0 << ", y0: " << y0 <<endl;
+            cout << "rho: " << rho << "theta " << theta <<endl;
+        }
+
         pt1.x = 0;
         pt1.y = y0;
         pt2.x = dst.cols;
@@ -115,40 +122,134 @@ int main(int argc, const char** argv) {
         lijnen.push_back(y0);
         //cout << "p1: "<<pt1.x<< ',' << pt1.y << ";pt2" << pt2.x <<"," <<pt2.y<<endl;
     }
+    if(parser.has("debug"))
+    {
+        namedWindow("lijnen", WINDOW_AUTOSIZE);   //create a window to display everything
+        setMouseCallback("lijnen", mouseCallBack,NULL);    //enable the mousecallback
+        imshow("lijnen", dst);
+        waitKey(0);
+    }
 
-    namedWindow("lijnen", WINDOW_AUTOSIZE);   //create a window to display everything
-    setMouseCallback("lijnen", mouseCallBack,NULL);    //enable the mousecallback
-    imshow("lijnen", dst);
-    waitKey(0);
 
     sort(lijnen.begin(),lijnen.end(),comparator);
     for(int i=0;i<lijnen.size();i++)
     {
         cout << lijnen.at(i) << endl;
     }
-    int mi_lijn = lijnen.at(0);
-    int sol_lijn = lijnen.at(1);
+    int fa_lijn = lijnen.at(0);
+    int re_lijn = lijnen.at(1);
     int si_lijn = lijnen.at(2);
-    int re_lijn = lijnen.at(3);
-    int fa_lijn = lijnen.at(4);
+    int sol = lijnen.at(3);
+    int mi = lijnen.at(4);
 
 
     Mat noten = bin.clone();
-    // Specify size on vertical axis
-    int verticalsize = noten.rows /200;
+    int verticalsize = noten.rows /200;     //was 200
 
-    // Create structure element for extracting vertical lines through morphology operations
     Mat verticalStructure = getStructuringElement(MORPH_RECT, Size( 1,verticalsize));
 
-    // Apply morphology operations
+
     erode(noten, noten, verticalStructure, Point(-1, -1));
     dilate(noten, noten, verticalStructure, Point(-1, -1));
 
+    if(parser.has("debug"))
+    {
+        imshow("vertical", noten);
+        waitKey(0);
+    }
 
-    imshow("vertical", noten);
+
+    vector<vector<Point>> contouren;
+    findContours(noten.clone(), contouren, RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);
+    vector <vector <Point>> hulls;
+    for(size_t i=0;i<contouren.size();i++)
+    {
+       // cout << contouren[i] <<endl;
+        vector<Point> hull;
+        convexHull(contouren[i],hull);
+        hulls.push_back(hull);
+    }
+
+    Mat voor=dst.clone();
+    Mat na = dst.clone();
+    drawContours(voor, contouren, -1, Scalar(255,255,255),-1);
+    if(parser.has("debug"))
+    {
+        imshow("noten voor erase", voor);
+        waitKey(0);
+    }
+
+    cout << "voor:" << contouren.size() <<endl;
+    vector<vector<Point>> naaa;
+    for(int i=0;i<contouren.size();i++)
+    {
+        vector<Point> pointlist;
+       // cout << "contour "<< i  << "=" <<contouren.at(i) <<endl;
+        //cout << "first y value = " << contouren.at(i).at(0).y <<endl;
+        if(contouren.at(i).at(0).y<200)
+        {
+            contouren.erase(contouren.begin()+i);
+            cout << "erased" <<endl<<endl;
+        }
+        else{
+            naaa.push_back(contouren.at(i));
+        }
+    }
+
+    sort(naaa.begin(),naaa.end(),comparator2);
+    for(int i=0;i<naaa.size();i++)
+    {
+        cout << "contour " << i << ":" << naaa.at(i) <<endl<<endl;
+    }
+
+    /////////
+    Mat changeme = Mat::zeros(image_gray.size(), CV_32FC1);
+    //Mat changeme = Mat::zeros(image_gray.size(),3,CV_32FC1);
+    drawContours(changeme, naaa, -1, Scalar(255,0,0),-1);
+
+
+    Mat elipsStructure = getStructuringElement(MORPH_ELLIPSE, Size(8,4));
+    erode(changeme, changeme, elipsStructure, Point(-1, -1));
+    dilate(changeme, changeme, elipsStructure, Point(-1, -1));
+    imshow("na", changeme);
     waitKey(0);
 
-    vector<Vec2f> bolletjes;
+    /*int verticalsize2 = changeme.rows /50;
+
+    Mat verticalStructure2 = getStructuringElement(MORPH_RECT, Size( 1,verticalsize2));
+
+
+    erode(changeme, changeme, verticalStructure2, Point(-1, -1));
+    dilate(changeme, changeme, verticalStructure2, Point(-1, -1));
+
+    imshow("na", changeme);
+    waitKey(0);*/
+    ////////
+    /*vector<vector<Point> > contours_poly( naaa.size() );
+    vector<Rect> boundRect( naaa.size() );
+    vector<Point2f>center( naaa.size() );
+    vector<float>radius( naaa.size() );
+    for( size_t i = 0; i < naaa.size(); i++ )
+    { approxPolyDP( Mat(naaa[i]), contours_poly[i], 3, true );
+        boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+
+    }
+    for( size_t i = 0; i< naaa.size(); i++ )
+    {
+        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+
+        rectangle( na, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
+
+    }*/
+
+
+    //drawContours(na, naaa, -1, Scalar(255,0,0),-1);
+    if(parser.has("debug"))
+    {
+        imshow("noten?", na);
+        waitKey(0);
+    }
+
 
 
 
